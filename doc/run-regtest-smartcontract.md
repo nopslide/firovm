@@ -1,6 +1,7 @@
 # Configuration
 
 In order to run on Regression mode, in Ubuntu, following configuration will be put in ~/.fvm/fvm.conf
+    
     rpcuser=x
     rpcpassword=y
     regtest=1
