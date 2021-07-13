@@ -1,5 +1,7 @@
 # Configuration
 
+
+
 In order to run on Regression mode, in Ubuntu, following configuration will be put in ~/.fvm/fvm.conf
     
     rpcuser=x
@@ -11,7 +13,7 @@ In order to run on Regression mode, in Ubuntu, following configuration will be p
     fallbackfee=1
     daemon=1
 
-After running the daemon, To demonstrate how to deploy and interact with a simple we will use this contract:
+After running the daemon using command `firovmd`, To demonstrate how to deploy and interact with a simple we will use this contract:
     
     pragma solidity ^0.4.0;
 
