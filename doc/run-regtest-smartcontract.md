@@ -85,7 +85,7 @@ For example, we got TMkeCahCkZqAf6nwZ3XYt18RiYSJmjeit2 as output. Then we call g
 
     ./firovm-cli generatetoaddress 200 TMkeCahCkZqAf6nwZ3XYt18RiYSJmjeit2
 
-Then you can call `createcontract` again, then call
+Then you can call `createcontract` again, then call. Moreover you can using script `auto_block_generate.sh` to auto-mining blocks every 15 seconds, and you can also change the period of block time If needed.
 
     ./firovm-cli generatetoaddress 1 TMkeCahCkZqAf6nwZ3XYt18RiYSJmjeit2
 
