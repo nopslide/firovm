@@ -160,3 +160,8 @@ Afterwards, we can call `returnNumber()` again and check the `output` field:
     "output": "000000000000000000000000000000000000000000000000000000000001e240",
 
 This is 123456 encoded as hex. 
+
+Notes
+If your function require multiple param you need to encode function by passing param in order.
+Example
+$ ethabi encode function <abi-path> <function-name> -p 1 -p 4 -l-p <param> -p <param>
