@@ -164,4 +164,20 @@ This is 123456 encoded as hex.
 Notes
 If your function require multiple param you need to encode function by passing param in order.
 Example
-$ ethabi encode function <abi-path> <function-name> -p 1 -p 4 -l-p <param> -p <param>
+
+    $ ethabi encode function <abi-path> <function-name> -p 1 -p 4 -l
+    // -p <param> -p <param>
+
+FiroVM including additional command for using with non-native token layer than built on smart contract layer command will following FRC20 similar to ERC20 standard.
+
+    $ firovm-cli frc20name <contract-address>
+    output: <token-name>
+
+    $ firovm-cli frc20symbol <contract-address>
+    output: <token-symbol>
+
+    $ firovm-cli frc20totalsupply <contract-address>
+    output: <token-totalsupply>
+
+    $ firovm-cli frc20decimals <contract-address>
+    output: <token-decimals>
