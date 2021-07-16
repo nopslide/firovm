@@ -108,3 +108,10 @@ Changes should be tested by somebody other than the developer who wrote the
 code. This is especially important for large or high-risk changes. It is useful
 to add a test plan to the pull request description if testing the changes is
 not straightforward.
+
+### Notes 
+
+This repo have been tested with third party tool  
+lib for rpc call and smartcontract development [qtumjs](https://github.com/qtumproject/qtumjs)  
+cli for smartcontract deployment [solar](https://github.com/qtumproject/solar)  
+

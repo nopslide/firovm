@@ -12,6 +12,8 @@ In order to run on Regression mode, in Ubuntu, following configuration will be p
     debug=1
     fallbackfee=1
     daemon=1
+    [regtest]
+    rpcport=8545
 
 After running the daemon using command `firovmd`, To demonstrate how to deploy and interact with a simple we will use this contract:
     
