@@ -1,5 +1,7 @@
 # Configuration
 
+
+
 In order to run on Regression mode, in Ubuntu, following configuration will be put in ~/.fvm/fvm.conf
     
     rpcuser=x
@@ -10,8 +12,10 @@ In order to run on Regression mode, in Ubuntu, following configuration will be p
     debug=1
     fallbackfee=1
     daemon=1
+    [regtest]
+    rpcport=8545
 
-After running the daemon, To demonstrate how to deploy and interact with a simple we will use this contract:
+After running the daemon using command `firovmd`, To demonstrate how to deploy and interact with a simple we will use this contract:
     
     pragma solidity ^0.4.0;
 
@@ -52,7 +56,7 @@ After running the daemon, To demonstrate how to deploy and interact with a simpl
        }
     }
 
-It compiles to the following EVM bytecode 
+It compiles to the following EVM bytecode, To compile solidity source code using `solc` or using solidity compiler that integrating form third part SDKs or tools. e.g. Hardhat, Truffle and Brownie
 
     6060604052341561000c57fe5b5b60016000819055505b5b6102bd806100266000396000f30060606040523615610076576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff1680633450bd6a146100785780633ccfd60b1461009e5780633fb5c1cb146100b057806394e8767d146100d05780639f2c436f1461010c578063d0e30db01461011e575bfe5b341561008057fe5b610088610128565b6040518082815260200191505060405180910390f35b34156100a657fe5b6100ae610133565b005b34156100b857fe5b6100ce6004808035906020019091905050610190565b005b34156100d857fe5b6100ee600480803590602001909190505061019b565b60405180826000191660001916815260200191505060405180910390f35b341561011457fe5b61011c610246565b005b61012661028e565b005b600060005490505b90565b3373ffffffffffffffffffffffffffffffffffffffff166108fc3073ffffffffffffffffffffffffffffffffffffffff16319081150290604051809050600060405180830381858888f19350505050151561018d57610000565b5b565b806000819055505b50565b600060008214156101ce577f3000000000000000000000000000000000000000000000000000000000000000905061023d565b5b600082111561023c5761010081600190048115156101e957fe5b0460010290507f01000000000000000000000000000000000000000000000000000000000000006030600a8481151561021e57fe5b06010260010281179050600a8281151561023457fe5b0491506101cf565b5b8090505b919050565b61025160005461019b565b6000191660405180807f73746f7265644e756d6265720000000000000000000000000000000000000000815250600c01905060405180910390a15b565b5b5600a165627a7a72305820326efcd34df5fdba07e7a1afe7ffd4b42873ef749ae9a5915db46fd20b9c251c0029
 
@@ -83,7 +87,7 @@ For example, we got TMkeCahCkZqAf6nwZ3XYt18RiYSJmjeit2 as output. Then we call g
 
     ./firovm-cli generatetoaddress 200 TMkeCahCkZqAf6nwZ3XYt18RiYSJmjeit2
 
-Then you can call `createcontract` again, then call
+Then you can call `createcontract` again, then call. Moreover you can using script `auto_block_generate.sh` to auto-mining blocks every 15 seconds, and you can also change the period of block time If needed.
 
     ./firovm-cli generatetoaddress 1 TMkeCahCkZqAf6nwZ3XYt18RiYSJmjeit2
 
@@ -158,3 +162,24 @@ Afterwards, we can call `returnNumber()` again and check the `output` field:
     "output": "000000000000000000000000000000000000000000000000000000000001e240",
 
 This is 123456 encoded as hex. 
+
+Notes
+If your function require multiple param you need to encode function by passing param in order.
+Example
+
+    $ ethabi encode function <abi-path> <function-name> -p 1 -p 4 -l
+    // -p <param> -p <param>
+
+FiroVM including additional command for using with non-native token layer than built on smart contract layer command will following FRC20 similar to ERC20 standard.
+
+    $ firovm-cli frc20name <contract-address>
+    output: <token-name>
+
+    $ firovm-cli frc20symbol <contract-address>
+    output: <token-symbol>
+
+    $ firovm-cli frc20totalsupply <contract-address>
+    output: <token-totalsupply>
+
+    $ firovm-cli frc20decimals <contract-address>
+    output: <token-decimals>

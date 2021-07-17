@@ -21,8 +21,68 @@ The `main` branch is regularly built and tested, but is not guaranteed to be
 completely stable. [Tags](https://github.com/nopslide/firovm/tags) are created
 regularly to indicate new official, stable release versions of FiroVM.
 
+Linux Build Instructions and Notes
+==================================
+
+Dependencies
+----------------------
+1.  Update packages
+
+        sudo apt-get update
+
+2.  Install required packages
+
+        sudo apt-get install build-essential libtool autotools-dev automake pkg-config libssl-dev libevent-dev bsdmainutils libboost-all-dev libgmp-dev cmake
+
+3.  Install Berkeley DB 4.8
+
+        sudo apt-get install software-properties-common
+        sudo add-apt-repository ppa:bitcoin/bitcoin
+        sudo apt-get update
+        sudo apt-get install libdb4.8-dev libdb4.8++-dev
+
+4.  Install QT 5
+
+        sudo apt-get install libminiupnpc-dev libzmq3-dev
+        sudo apt-get install libqt5gui5 libqt5core5a libqt5dbus5 qttools5-dev qttools5-dev-tools libprotobuf-dev protobuf-compiler libqrencode-dev
+
+Alternatively, you can use a [depends build](depends/README.md) to handle dependencies.
+
+Build
+----------------------
+1.  Clone the source:
+
+        git clone https://github.com/
+
+2.  Build Firo-core:
+
+    Configure and build the headless Firo binaries as well as the GUI (if Qt is found).
+
+    You can disable the GUI build by passing `--without-gui` to configure.
+        
+        ./autogen.sh
+        ./configure
+        make
+        make install #optional
+
+    Note that the use of a [depends build](depends/README.md) necessitates passing the `--prefix` option to `./configure`.
+
+3.  It is recommended to build and run the unit tests:
+
+        ./configure --enable-tests
+        make check
+
+4.  After building passed output file/binaries will append in src directory
+
+        firovmd firovm-tx firovm-wallet firovm-cli
+
+5.  moving or copy binaries to /usr/local/bin for using in any directory
+
 Testing
 -------
+
+### Runing regtest for smart contract testing
+ for testing smart contract please following instruction [documentation](doc/run-regtest-smartcontract.md)
 
 Testing and code review is the bottleneck for development; we get more pull
 requests than we can review and test on short notice. Please be patient and help out by testing
@@ -48,3 +108,10 @@ Changes should be tested by somebody other than the developer who wrote the
 code. This is especially important for large or high-risk changes. It is useful
 to add a test plan to the pull request description if testing the changes is
 not straightforward.
+
+### Notes 
+
+This repo have been tested with third party tool  
+lib for rpc call and smartcontract development [qtumjs](https://github.com/qtumproject/qtumjs)  
+cli for smartcontract deployment [solar](https://github.com/qtumproject/solar)  
+
