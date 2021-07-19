@@ -114,4 +114,5 @@ not straightforward.
 This repo have been tested with third party tool  
 lib for rpc call and smartcontract development [qtumjs](https://github.com/qtumproject/qtumjs)  
 cli for smartcontract deployment [solar](https://github.com/qtumproject/solar)  
-
+to config genesis on EVM chain [genesis](./src/cpp-ethereum/libethashseal/genesis/fvmMainNetwork.cpp)
+DAO contract DGP Qtum pre-loaded contract [source](https://github.com/qtumproject/qtum-dgp)
