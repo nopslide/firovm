@@ -25,11 +25,10 @@ public:
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
     uint32_t nTime;
-    uint32_t nBits;
-    uint32_t nNonce;
     uint256 hashStateRoot; 
     uint256 hashUTXORoot;
-
+    uint64_t nMaxSupply;
+    std::vector<unsigned char> vchBlockSig;
 
     CBlockHeader()
     {
@@ -44,11 +43,10 @@ public:
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
         READWRITE(nTime);
-        READWRITE(nBits);
-        READWRITE(nNonce);
         READWRITE(hashStateRoot); 
-        READWRITE(hashUTXORoot); 
-
+        READWRITE(hashUTXORoot);  
+        READWRITE(nMaxSupply);         
+        READWRITE(vchBlockSig);
     }
 
     void SetNull()
@@ -57,16 +55,15 @@ public:
         hashPrevBlock.SetNull();
         hashMerkleRoot.SetNull();
         nTime = 0;
-        nBits = 0;
-        nNonce = 0;
         hashStateRoot.SetNull();
         hashUTXORoot.SetNull(); 
-
+        nMaxSupply = 0;  
+        vchBlockSig.clear();
     }
 
     bool IsNull() const
     {
-        return (nBits == 0);
+        return (nTime == 0);
     }
 
     uint256 GetHash() const;
@@ -85,10 +82,10 @@ public:
             this->hashPrevBlock  = other.hashPrevBlock;
             this->hashMerkleRoot = other.hashMerkleRoot;
             this->nTime          = other.nTime;
-            this->nBits          = other.nBits;
-            this->nNonce         = other.nNonce;
-            this->hashStateRoot  = other.hashStateRoot;
-            this->hashUTXORoot   = other.hashUTXORoot;
+            this->hashStateRoot  = other.hashStateRoot;  
+            this->hashUTXORoot   = other.hashUTXORoot;     
+            this->nMaxSupply     = other.nMaxSupply;                  
+            this->vchBlockSig    = other.vchBlockSig;
         }
         return *this;
     }
@@ -139,10 +136,10 @@ public:
         block.hashPrevBlock  = hashPrevBlock;
         block.hashMerkleRoot = hashMerkleRoot;
         block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
         block.hashStateRoot  = hashStateRoot; 
-        block.hashUTXORoot   = hashUTXORoot;
+        block.hashUTXORoot   = hashUTXORoot;  
+        block.nMaxSupply     = nMaxSupply;      
+        block.vchBlockSig    = vchBlockSig;
         return block;
     }
 

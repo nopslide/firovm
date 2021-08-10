@@ -15,7 +15,6 @@
 #include <net.h>
 #include <net_processing.h>
 #include <noui.h>
-#include <pow.h>
 #include <rpc/blockchain.h>
 #include <rpc/register.h>
 #include <rpc/server.h>
@@ -30,6 +29,7 @@
 #include <validation.h>
 #include <validationinterface.h>
 #include <util/convert.h>
+#include <key_io.h>
 
 #include <functional>
 
@@ -225,6 +225,24 @@ CBlock TestChain100Setup::CreateAndProcessBlock(const std::vector<CMutableTransa
     }
 
     while (!CheckProofOfWork(block.GetHash(), block.nBits, chainparams.GetConsensus())) ++block.nNonce;
+
+
+    if(gArgs.IsArgSet("-signerkey")) {            
+            std::string strPrivKey = gArgs.GetArg("-signerkey", "");
+            bool invalid;
+            std::vector<unsigned char> vchPrivKey = DecodeBase64(strPrivKey.c_str(), &invalid);
+            if (invalid) {
+                throw ("CreateNewBlock(): signerkey has invalided base64");
+            }
+            CKey key;
+            key.SetPrivKey(CPrivKey(vchPrivKey.begin(), vchPrivKey.end()));
+            // sign and appen signature to the block
+            std::vector<unsigned char> vchSig;
+            bool isSigned = key.SignCompact(block.GetHashWithoutSign(), vchSig);
+            block.vchBlockSig = vchSig;
+    }else{
+            throw ("Signerkey does not provide");
+    }
 
     std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(block);
     ProcessNewBlock(chainparams, shared_pblock, true, nullptr);

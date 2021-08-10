@@ -161,9 +161,6 @@ public:
     //! Byte offset within rev?????.dat where this block's undo data is stored
     unsigned int nUndoPos{0};
 
-    //! (memory only) Total amount of work (expected number of hashes) in the chain up to and including this block
-    arith_uint256 nChainWork{};
-
     //! Number of transactions in this block.
     //! Note: in a potential headers-first mode, this number cannot be relied upon
     unsigned int nTx{0};
@@ -180,10 +177,11 @@ public:
     int32_t nVersion{0};
     uint256 hashMerkleRoot{};
     uint32_t nTime{0};
-    uint32_t nBits{0};
-    uint32_t nNonce{0};
     uint256 hashStateRoot{}; 
     uint256 hashUTXORoot{}; 
+    std::vector<unsigned char> vchBlockSig{};
+    uint64_t nMaxSupply{0};
+    uint64_t nMoneySupply{0};
     //! (memory only) Sequential id assigned to distinguish order in which blocks are received.
     int32_t nSequenceId{0};
 
@@ -198,10 +196,10 @@ public:
         : nVersion{block.nVersion},
           hashMerkleRoot{block.hashMerkleRoot},
           nTime{block.nTime},
-          nBits{block.nBits},
-          nNonce{block.nNonce},
-        hashStateRoot{block.hashStateRoot},
-          hashUTXORoot{block.hashUTXORoot}
+          hashStateRoot{block.hashStateRoot},
+          hashUTXORoot{block.hashUTXORoot},  
+          nMaxSupply{block.nMaxSupply},         
+          vchBlockSig{block.vchBlockSig}
     {
     }
 
@@ -231,10 +229,10 @@ public:
             block.hashPrevBlock = pprev->GetBlockHash();
         block.hashMerkleRoot = hashMerkleRoot;
         block.nTime          = nTime;
-        block.nBits          = nBits;
-        block.nNonce         = nNonce;
         block.hashStateRoot  = hashStateRoot; 
-        block.hashUTXORoot   = hashUTXORoot; 
+        block.hashUTXORoot   = hashUTXORoot;
+        block.nMaxSupply     = nMaxSupply;    
+        block.vchBlockSig    = vchBlockSig;
         return block;
     }
 
@@ -317,9 +315,6 @@ public:
     const CBlockIndex* GetAncestor(int height) const;
 };
 
-arith_uint256 GetBlockProof(const CBlockIndex& block);
-/** Return the time it would take to redo the work difference between from and to, assuming the current hashrate corresponds to the difficulty at tip, in seconds. */
-int64_t GetBlockProofEquivalentTime(const CBlockIndex& to, const CBlockIndex& from, const CBlockIndex& tip, const Consensus::Params&);
 /** Find the forking point between two chain tips. */
 const CBlockIndex* LastCommonAncestor(const CBlockIndex* pa, const CBlockIndex* pb);
 
@@ -349,16 +344,18 @@ public:
         if (obj.nStatus & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO)) READWRITE(VARINT_MODE(obj.nFile, VarIntMode::NONNEGATIVE_SIGNED));
         if (obj.nStatus & BLOCK_HAVE_DATA) READWRITE(VARINT(obj.nDataPos));
         if (obj.nStatus & BLOCK_HAVE_UNDO) READWRITE(VARINT(obj.nUndoPos));
+        READWRITE(VARINT(obj.nMoneySupply));
 
         // block header
         READWRITE(obj.nVersion);
         READWRITE(obj.hashPrev);
         READWRITE(obj.hashMerkleRoot);
         READWRITE(obj.nTime);
-        READWRITE(obj.nBits);
-        READWRITE(obj.nNonce);
         READWRITE(obj.hashStateRoot); 
         READWRITE(obj.hashUTXORoot); 
+        READWRITE(obj.hashUTXORoot); 
+        READWRITE(obj.nMaxSupply);
+        READWRITE(obj.vchBlockSig); 
 
     }
 
@@ -369,10 +366,10 @@ public:
         block.hashPrevBlock   = hashPrev;
         block.hashMerkleRoot  = hashMerkleRoot;
         block.nTime           = nTime;
-        block.nBits           = nBits;
-        block.nNonce          = nNonce;
         block.hashStateRoot   = hashStateRoot;
-        block.hashUTXORoot    = hashUTXORoot; 
+        block.hashUTXORoot    = hashUTXORoot;        
+        block.nMaxSupply      = nMaxSupply;        
+        block.vchBlockSig     = vchBlockSig;
         return block.GetHash();
     }
 

@@ -101,6 +101,7 @@ public:
     //! Negate private key
     bool Negate();
 
+    bool SetPrivKey(const CPrivKey &privkey);
     /**
      * Convert the private key to a CPrivKey (serialized OpenSSL private key data).
      * This is expensive.

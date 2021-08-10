@@ -8,13 +8,13 @@
 #include <consensus/merkle.h>
 #include <consensus/validation.h>
 #include <miner.h>
-#include <pow.h>
 #include <random.h>
 #include <script/standard.h>
 #include <test/util/setup_common.h>
 #include <util/time.h>
 #include <validation.h>
 #include <validationinterface.h>
+#include <key_io.h>
 
 #include <thread>
 
@@ -103,8 +103,7 @@ std::shared_ptr<CBlock> MinerTestingSetup::FinalizeBlock(std::shared_ptr<CBlock>
     while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
         ++(pblock->nNonce);
     }
-
-    return pblock;
+        return pblock;
 }
 
 // construct a valid block

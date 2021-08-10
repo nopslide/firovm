@@ -219,6 +219,9 @@ public:
     //! Get the reward for the block at some specific height
     virtual int64_t getBlockSubsidy(int nHeight) = 0;
 
+    //! Get the money supply
+    virtual int64_t getMoneySupply() = 0;
+
     //! Attempts to load a wallet from file or directory.
     //! The loaded wallet is also notified to handlers previously registered
     //! with handleLoadWallet.

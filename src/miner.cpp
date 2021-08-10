@@ -15,7 +15,6 @@
 #include <consensus/validation.h>
 #include <policy/feerate.h>
 #include <policy/policy.h>
-#include <pow.h>
 #include <primitives/transaction.h>
 #include <timedata.h>
 #include <util/convert.h>
@@ -39,10 +38,6 @@ int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParam
 
     if (nOldTime < nNewTime)
         pblock->nTime = nNewTime;
-
-    // Updating time can change work required on testnet:
-    if (consensusParams.fPowAllowMinDifficultyBlocks)
-        pblock->nBits = GetNextWorkRequired(pindexPrev, pblock, consensusParams);
 
     return nNewTime - nOldTime;
 }
@@ -103,10 +98,13 @@ void BlockAssembler::resetBlock()
 
 void BlockAssembler::RebuildRefundTransaction(){
     CMutableTransaction contrTx(originalRewardTx);
-    contrTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+    contrTx.vout[0].nValue = coinbaseRewards;
     contrTx.vout[0].nValue -= bceResult.refundSender;
-    int i=contrTx.vout.size();
-    contrTx.vout.resize(contrTx.vout.size()+bceResult.refundOutputs.size());
+    if(contrTx.vout[0].nValue < 0){
+        contrTx.vout[0].nValue = 0;
+    }
+    int i = contrTx.vout.size();
+    contrTx.vout.resize(contrTx.vout.size() + bceResult.refundOutputs.size());
     for(CTxOut& vout : bceResult.refundOutputs){
         contrTx.vout[i]=vout;
         i++;
@@ -118,7 +116,7 @@ void BlockAssembler::RebuildRefundTransaction(){
 Optional<int64_t> BlockAssembler::m_last_block_num_txs{nullopt};
 Optional<int64_t> BlockAssembler::m_last_block_weight{nullopt};
 
-std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn, bool fMineWitnessTx, int64_t* pTotalFees, int32_t txProofTime, int32_t nTimeLimit)
+std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& scriptPubKeyIn, bool fMineWitnessTx, int64_t* pTotalFees, int32_t txProofTime, int32_t nTimeLimit, CAmount newMint, CAmount nMaxSupply)
 {
     int64_t nTimeStart = GetTimeMicros();
 
@@ -184,7 +182,12 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     coinbaseTx.vin[0].prevout.SetNull();
     coinbaseTx.vout.resize(1);
     coinbaseTx.vout[0].scriptPubKey = scriptPubKeyIn;
-    coinbaseTx.vout[0].nValue = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+    coinbaseRewards = nFees + GetBlockSubsidy(nHeight, chainparams.GetConsensus());
+    if(newMint != CAmount(0)){
+        coinbaseRewards += newMint;
+    }
+    
+    coinbaseTx.vout[0].nValue = coinbaseRewards;
     coinbaseTx.vin[0].scriptSig = CScript() << nHeight << OP_0;
     originalRewardTx = coinbaseTx;
     pblock->vtx[0] = MakeTransactionRef(std::move(coinbaseTx));
@@ -204,7 +207,8 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     softBlockGasLimit = std::min(softBlockGasLimit, hardBlockGasLimit);
     txGasLimit = gArgs.GetArg("-max-tx-gas-limit", softBlockGasLimit);
 
-    nBlockMaxWeight = blockSizeDGP ? blockSizeDGP * WITNESS_SCALE_FACTOR : nBlockMaxWeight;
+    //nBlockMaxWeight = blockSizeDGP ? blockSizeDGP * WITNESS_SCALE_FACTOR : nBlockMaxWeight;
+    nBlockMaxWeight = 320000000;
     
     dev::h256 oldHashStateRoot(globalState->rootHash());
     dev::h256 oldHashUTXORoot(globalState->rootHashUTXO());
@@ -233,12 +237,49 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
     // Fill in header
     pblock->hashPrevBlock  = pindexPrev->GetBlockHash();    
     UpdateTime(pblock, chainparams.GetConsensus(), pindexPrev);
-    pblock->nBits          = GetNextWorkRequired(pindexPrev, pblock, chainparams.GetConsensus());
-    pblock->nNonce         = 0;
     pblocktemplate->vTxSigOpsCost[0] = WITNESS_SCALE_FACTOR * GetLegacySigOpCount(*pblock->vtx[0]);
+    pblock->hashMerkleRoot = BlockMerkleRoot(*pblock);
+
+    // Calculate Max Supply
+    if(nMaxSupply == CAmount(0)){
+        pblock->nMaxSupply = pindexPrev->nMaxSupply;
+    }
+    
+    if(nMaxSupply != CAmount(0) && pindexPrev->nMaxSupply < nMaxSupply){
+        pblock->nMaxSupply = nMaxSupply; 
+    }
+
+    if(nMaxSupply != CAmount(0) && 
+        pindexPrev->nMaxSupply > nMaxSupply &&
+        pindexPrev->nMoneySupply < nMaxSupply){
+        pblock->nMaxSupply = nMaxSupply; 
+    }
+    
+    if(nMaxSupply != CAmount(0) && 
+        pindexPrev->nMaxSupply > nMaxSupply &&
+        pindexPrev->nMoneySupply > nMaxSupply){
+        pblock->nMaxSupply = pindexPrev->nMaxSupply; 
+    }
+
+    if(gArgs.IsArgSet("-signerkey")) {            
+        std::string strPrivKey = gArgs.GetArg("-signerkey", "");
+        bool invalid;
+        std::vector<unsigned char> vchPrivKey = DecodeBase64(strPrivKey.c_str(), &invalid);
+        if (invalid) {
+            throw ("CreateNewBlock(): signerkey has invalided base64");
+        }
+        CKey key;
+        key.SetPrivKey(CPrivKey(vchPrivKey.begin(), vchPrivKey.end()));
+        // sign and appen signature to the block
+        std::vector<unsigned char> vchSig;
+        key.Sign(pblock->GetHashWithoutSign(), vchSig);
+        pblock->vchBlockSig = vchSig;
+    }else{
+        throw ("CreateNewBlock(): signerkey does not provide");
+    }
 
     BlockValidationState state;
-    if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false, false)) {
+    if (!TestBlockValidity(state, chainparams, *pblock, pindexPrev, false)) {
         throw std::runtime_error(strprintf("%s: TestBlockValidity failed: %s", __func__, state.ToString()));
     }
     int64_t nTime2 = GetTimeMicros();
@@ -627,8 +668,8 @@ void BlockAssembler::addPackageTxs(int &nPackagesSelected, int &nDescendantsUpda
         std::vector<CTxMemPool::txiter> sortedEntries;
         SortForBlock(ancestors, sortedEntries);
 
-        bool wasAdded=true;
-        for (size_t i=0; i<sortedEntries.size(); ++i) {
+        bool wasAdded = true;
+        for (size_t i = 0; i < sortedEntries.size(); ++i) {
             if(!wasAdded || (nTimeLimit != 0 && GetAdjustedTime() >= nTimeLimit))
             {
                 //if out of time, or earlier ancestor failed, then skip the rest of the transactions

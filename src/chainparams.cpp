@@ -13,8 +13,9 @@
 #include <util/strencodings.h>
 #include <util/convert.h>
 #include <versionbitsinfo.h>
-
+#include <key_io.h>
 #include <assert.h>
+#include <random.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -22,9 +23,9 @@
 #include <libdevcore/SHA3.h>
 #include <libdevcore/RLP.h>
 #include "arith_uint256.h"
-#include "pow.h"
 
-static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward, std::vector<unsigned char> extraNonce)
+
+static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesisOutputScript, uint32_t nTime, int32_t nVersion, const CAmount& genesisReward, std::vector<unsigned char> extraNonce)
 {
     CMutableTransaction txNew;
     txNew.nVersion = 1;
@@ -37,34 +38,23 @@ static CBlock CreateGenesisBlock(const char* pszTimestamp, const CScript& genesi
 
     CBlock genesis;
     genesis.nTime    = nTime;
-    genesis.nBits    = nBits;
-    genesis.nNonce   = nNonce;
     genesis.nVersion = nVersion;
     genesis.vtx.push_back(MakeTransactionRef(std::move(txNew)));
     genesis.hashPrevBlock.SetNull();
     genesis.hashMerkleRoot = BlockMerkleRoot(genesis);
     genesis.hashStateRoot = uint256(h256Touint(dev::h256("e965ffd002cd6ad0e2dc402b8044de833e06b23127ea8c3d80aec91410771495"))); 
     genesis.hashUTXORoot = uint256(h256Touint(dev::sha3(dev::rlp("")))); 
-
+    genesis.nMaxSupply   = 21000000 * COIN;
+    genesis.vchBlockSig = DecodeBase64("MEQCIArDPlMLTFrxr1NW6stfl0IJwjpXvaow3DNJbOA36GziAiANRGIg0p71+DA461E2y5+viRZgkcn63q8ivGDTbLQhJQ==");    
+    
     return genesis;
 }
 
-/**
- * Build the genesis block. Note that the output of its generation
- * transaction cannot be spent since it did not originally exist in the
- * database.
- *
- * CBlock(hash=000000000019d6, ver=1, hashPrevBlock=00000000000000, hashMerkleRoot=4a5e1e, nTime=1231006505, nBits=1d00ffff, nNonce=2083236893, vtx=1)
- *   CTransaction(hash=4a5e1e, ver=1, vin.size=1, vout.size=1, nLockTime=0)
- *     CTxIn(COutPoint(000000, -1), coinbase 04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73)
- *     CTxOut(nValue=50.00000000, scriptPubKey=0x5F1DF16B2B704C8A578D0B)
- *   vMerkleTree: 4a5e1e
- */
-static CBlock CreateGenesisBlock(uint32_t nTime, uint32_t nNonce, uint32_t nBits, int32_t nVersion, const CAmount& genesisReward,  std::vector<unsigned char> extraNonce)
+static CBlock CreateGenesisBlock(uint32_t nTime, int32_t nVersion, const CAmount& genesisReward,  std::vector<unsigned char> extraNonce)
 {
     const char* pszTimestamp = "The New York Times 2021/06/22 Colombia Surpasses 100,000 Deaths as Virus Pummels South America";
     const CScript genesisOutputScript = CScript(); 
-    return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nNonce, nBits, nVersion, genesisReward, extraNonce);
+    return CreateGenesisBlock(pszTimestamp, genesisOutputScript, nTime, nVersion, genesisReward, extraNonce);
 }
 
 /**
@@ -112,9 +102,15 @@ public:
         m_assumed_blockchain_size = 320;
         m_assumed_chain_state_size = 4;
 
-        genesis = CreateGenesisBlock(1624337565, 142392, 0x1e0ffff0, 2, 0 * COIN, extraNonce);     
+        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,82);
+        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,7);
+        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,210);
+        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
+        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
+
+        genesis = CreateGenesisBlock(1624337565, 2, 0 * COIN, extraNonce);    
         consensus.hashGenesisBlock = genesis.GetHash();
-        assert(consensus.hashGenesisBlock == uint256S("0x71b45848a0a7fb15e72224d17d0c9327fe611a24c8c175e5110cac9d5b67d38b"));
+        assert(consensus.hashGenesisBlock == uint256S("0x61d1d322da50dc9961e99d57a14189138065b49046167834bc58e0de84671e14"));
         assert(genesis.hashMerkleRoot == uint256S("0x4fc2978aef3e98c8dc13b6b0b8b1edc1233e1c9f802b6d2310756807f219d127"));
 
         vSeeds.emplace_back("amsterdam.fvm.firo.org");
@@ -127,12 +123,6 @@ public:
         vSeeds.emplace_back("tokyo.fvm.firo.org");
         vSeeds.emplace_back("singapore.fvm.firo.org");
 
-        base58Prefixes[PUBKEY_ADDRESS] = std::vector<unsigned char>(1,82);
-        base58Prefixes[SCRIPT_ADDRESS] = std::vector<unsigned char>(1,7);
-        base58Prefixes[SECRET_KEY] =     std::vector<unsigned char>(1,210);
-        base58Prefixes[EXT_PUBLIC_KEY] = {0x04, 0x88, 0xB2, 0x1E};
-        base58Prefixes[EXT_SECRET_KEY] = {0x04, 0x88, 0xAD, 0xE4};
-
         bech32_hrp = "bc";
 
         vFixedSeeds = std::vector<SeedSpec6>(pnSeed6_main, pnSeed6_main + ARRAYLEN(pnSeed6_main));
@@ -144,7 +134,7 @@ public:
 
         checkpointData = {
             {
-                {0, uint256S("0x71b45848a0a7fb15e72224d17d0c9327fe611a24c8c175e5110cac9d5b67d38b")},
+                {0, uint256S("0x61d1d322da50dc9961e99d57a14189138065b49046167834bc58e0de84671e14")},
             }
         };
 
@@ -197,10 +187,10 @@ public:
         extraNonce[1] = 0x3f;
         extraNonce[2] = 0x00;
         extraNonce[3] = 0x00;
-        genesis = CreateGenesisBlock(1624337565, 142392, 0x1e0ffff0, 2, 0 * COIN, extraNonce);  
+        genesis = CreateGenesisBlock(1624337565, 2, 0 * COIN, extraNonce);  
         consensus.hashGenesisBlock = genesis.GetHash();
         
-        assert(consensus.hashGenesisBlock == uint256S("0x71b45848a0a7fb15e72224d17d0c9327fe611a24c8c175e5110cac9d5b67d38b"));
+        assert(consensus.hashGenesisBlock == uint256S("0x61d1d322da50dc9961e99d57a14189138065b49046167834bc58e0de84671e14"));
         assert(genesis.hashMerkleRoot == uint256S("0x4fc2978aef3e98c8dc13b6b0b8b1edc1233e1c9f802b6d2310756807f219d127"));
         vFixedSeeds.clear();
         vSeeds.clear();
@@ -233,7 +223,7 @@ public:
 
         checkpointData = {
             {
-                 {0, uint256S("0x71b45848a0a7fb15e72224d17d0c9327fe611a24c8c175e5110cac9d5b67d38b")},
+                 {0, uint256S("0x61d1d322da50dc9961e99d57a14189138065b49046167834bc58e0de84671e14")},
             }
         };
 
@@ -282,14 +272,16 @@ public:
         m_assumed_chain_state_size = 0;
 
         std::vector<unsigned char> extraNonce(4);
-        extraNonce[0] = 0x08;
-        extraNonce[1] = 0x00;
+        extraNonce[0] = 0x82;
+        extraNonce[1] = 0x3f;
         extraNonce[2] = 0x00;
         extraNonce[3] = 0x00;
-        genesis = CreateGenesisBlock(1624337565, 505648243, 0x207fffff, 1, 0 * COIN, extraNonce);
-        
-        consensus.hashGenesisBlock = genesis.GetHash();
+        genesis = CreateGenesisBlock(1624337565, 2, 0 * COIN, extraNonce); 
 
+        consensus.hashGenesisBlock = genesis.GetHash();
+        assert(consensus.hashGenesisBlock == uint256S("0x61d1d322da50dc9961e99d57a14189138065b49046167834bc58e0de84671e14"));
+        assert(genesis.hashMerkleRoot == uint256S("0x4fc2978aef3e98c8dc13b6b0b8b1edc1233e1c9f802b6d2310756807f219d127"));
+        
         vFixedSeeds.clear(); //!< Regtest mode doesn't have any fixed seeds.
         vSeeds.clear();      //!< Regtest mode doesn't have any DNS seeds.
 
@@ -300,7 +292,7 @@ public:
 
         checkpointData = {
             {
-                {0, uint256S("0x0000195c964bb2c88b237a51489b79cdce6e78c0c1be9e35eadcc8d913b5a9e0")},
+                {0, uint256S("0x61d1d322da50dc9961e99d57a14189138065b49046167834bc58e0de84671e14")},
             }
         };
 

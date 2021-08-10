@@ -324,6 +324,11 @@ public:
         return GetBlockSubsidy(nHeight, chainparams.GetConsensus());
     }
 
+    int64_t getMoneySupply() override
+    {
+        return pindexBestHeader ? pindexBestHeader->nMoneySupply : 0;
+    }
+
     std::unique_ptr<Handler> handleInitMessage(InitMessageFn fn) override
     {
         return MakeHandler(::uiInterface.InitMessage_connect(fn));
