@@ -25,7 +25,6 @@ Configurations
 -------------------
 1. fvm.conf
         validatekey=BAb04pScLRHoYaNLmTFgDG1xtqTVlRzEgeXQTzvNIKQYWNhKBbbmWchat1MbA0VOT/KnNmBA01Hbz4zhcf/7KSE=
-        #signer_key_for_testing
         signerkey=MIIBEwIBAQQgXMpMLJNgNdDO2zo1ir2O2eCcge+KSPgzgvpLANVtbwKggaUwgaICAQEwLAYHKoZIzj0BAQIhAP////////////////////////////////////7///wvMAYEAQAEAQcEQQR5vmZ++dy7rFWgYpXOhwsHApv82y3OKNlZ8oFbFvgXmEg62ncmo8RlXaT7/A4RCKj9F7RIpoVUGZxH0I/7ENS4AiEA/////////////////////rqu3OavSKA7v9JejNA2QUECAQGhRANCAAQG9OKUnC0R6GGjS5kxYAxtcbak1ZUcxIHl0E87zSCkGFjYSgW25lnIWrdTGwNFTk/ypzZgQNNR28+M4XH/+ykh
 
 Linux Build Instructions and Notes
