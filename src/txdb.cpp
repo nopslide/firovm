@@ -5,7 +5,6 @@
 
 #include <txdb.h>
 
-#include <pow.h>
 #include <random.h>
 #include <shutdown.h>
 #include <ui_interface.h>
@@ -542,15 +541,14 @@ bool CBlockTreeDB::LoadBlockIndexGuts(const Consensus::Params& consensusParams, 
                 pindexNew->nVersion       = diskindex.nVersion;
                 pindexNew->hashMerkleRoot = diskindex.hashMerkleRoot;
                 pindexNew->nTime          = diskindex.nTime;
-                pindexNew->nBits          = diskindex.nBits;
-                pindexNew->nNonce         = diskindex.nNonce;
                 pindexNew->nStatus        = diskindex.nStatus;
                 pindexNew->nTx            = diskindex.nTx;
                 pindexNew->hashStateRoot  = diskindex.hashStateRoot; 
                 pindexNew->hashUTXORoot   = diskindex.hashUTXORoot; 
-
-                if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, consensusParams))
-                    return error("%s: CheckProofOfWork failed: %s", __func__, pindexNew->ToString());
+                pindexNew->vchBlockSig    = diskindex.vchBlockSig;
+                pindexNew->nMoneySupply   = diskindex.nMoneySupply;
+                // if (!CheckBlockHeader(pindexNew->GetBlockHeader(), consensusParams))
+                //    return error("%s: CheckBlockHeader failed: %s", __func__, pindexNew->ToString());
 
                 pcursor->Next();
             } else {

@@ -167,6 +167,7 @@ static int ec_privkey_export_der(const secp256k1_context *ctx, unsigned char *pr
     return 1;
 }
 
+
 const unsigned char vchOrder[32] = {
     0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xfe,0xba,0xae,0xdc,0xe6,0xaf,0x48,0xa0,0x3b,0xbf,0xd2,0x5e,0x8c,0xd0,0x36,0x41,0x41
 };
@@ -222,6 +223,13 @@ bool CKey::Negate()
 {
     assert(fValid);
     return secp256k1_ec_privkey_negate(secp256k1_context_sign, keydata.data());
+}
+
+bool CKey::SetPrivKey(const CPrivKey &privkey) {
+    if (!ec_privkey_import_der(secp256k1_context_sign, (unsigned char*)begin(), privkey.data(), privkey.size()))
+        return false;
+    fValid = true;
+    return true;
 }
 
 CPrivKey CKey::GetPrivKey() const {

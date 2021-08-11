@@ -9,7 +9,6 @@
 #include <key_io.h>
 #include <miner.h>
 #include <node/context.h>
-#include <pow.h>
 #include <script/standard.h>
 #include <validation.h>
 
@@ -26,9 +25,21 @@ CTxIn MineBlock(const NodeContext& node, const CScript& coinbase_scriptPubKey)
 {
     auto block = PrepareBlock(node, coinbase_scriptPubKey);
 
-    while (!CheckProofOfWork(block->GetHash(), block->nBits, Params().GetConsensus())) {
-        ++block->nNonce;
-        assert(block->nNonce);
+    if(gArgs.IsArgSet("-signerkey")) {            
+            std::string strPrivKey = gArgs.GetArg("-signerkey", "");
+            bool invalid;
+            std::vector<unsigned char> vchPrivKey = DecodeBase64(strPrivKey.c_str(), &invalid);
+            if (invalid) {
+                throw ("CreateNewBlock(): signerkey has invalided base64");
+            }
+            CKey key;
+            key.SetPrivKey(CPrivKey(vchPrivKey.begin(), vchPrivKey.end()));
+            // sign and appen signature to the block
+            std::vector<unsigned char> vchSig;
+            bool isSigned = key.Sign(block->GetHashWithoutSign(), vchSig);
+            block->vchBlockSig = vchSig;
+    }else{
+            throw ("Signerkey does not provide");
     }
 
     bool processed{ProcessNewBlock(Params(), block, true, nullptr)};

@@ -308,7 +308,7 @@ def initialize_datadir(dirname, n, chain):
     else:
         chain_name_conf_arg = chain
         chain_name_conf_section = chain
-    with open(os.path.join(datadir, "bitcoin.conf"), 'w', encoding='utf8') as f:
+    with open(os.path.join(datadir, "fvm.conf"), 'w', encoding='utf8') as f:
         f.write("{}=1\n".format(chain_name_conf_arg))
         f.write("[{}]\n".format(chain_name_conf_section))
         f.write("port=" + str(p2p_port(n)) + "\n")
@@ -322,6 +322,8 @@ def initialize_datadir(dirname, n, chain):
         f.write("printtoconsole=0\n")
         f.write("upnp=0\n")
         f.write("shrinkdebugfile=0\n")
+        f.write("signerkey=MIIBEwIBAQQgpd0YOdJMxhuoyCno78g6/wQjkO0THzzaFxfYTgiZtSmggaUwgaICAQEwLAYHKoZIzj0BAQIhAP////////////////////////////////////7///wvMAYEAQAEAQcEQQR5vmZ++dy7rFWgYpXOhwsHApv82y3OKNlZ8oFbFvgXmEg62ncmo8RlXaT7/A4RCKj9F7RIpoVUGZxH0I/7ENS4AiEA/////////////////////rqu3OavSKA7v9JejNA2QUECAQGhRANCAASlRiNI+uRGyD7GUCZBK89qTZikkm1FW58/RHsUxOglXgyaNTo9SUyBqJ/eJ1aSPwH+9KH5OIfhYIveYdYeKI99\n")
+        f.write("validatekey=BKVGI0j65EbIPsZQJkErz2pNmKSSbUVbnz9EexTE6CVeDJo1Oj1JTIGon94nVpI/Af70ofk4h+Fgi95h1h4oj30=\n")
         os.makedirs(os.path.join(datadir, 'stderr'), exist_ok=True)
         os.makedirs(os.path.join(datadir, 'stdout'), exist_ok=True)
     return datadir
@@ -330,15 +332,15 @@ def get_datadir_path(dirname, n):
     return os.path.join(dirname, "node" + str(n))
 
 def append_config(datadir, options):
-    with open(os.path.join(datadir, "bitcoin.conf"), 'a', encoding='utf8') as f:
+    with open(os.path.join(datadir, "fvm.conf"), 'a', encoding='utf8') as f:
         for option in options:
             f.write(option + "\n")
 
 def get_auth_cookie(datadir, chain):
     user = None
     password = None
-    if os.path.isfile(os.path.join(datadir, "bitcoin.conf")):
-        with open(os.path.join(datadir, "bitcoin.conf"), 'r', encoding='utf8') as f:
+    if os.path.isfile(os.path.join(datadir, "fvm.conf")):
+        with open(os.path.join(datadir, "fvm.conf"), 'r', encoding='utf8') as f:
             for line in f:
                 if line.startswith("rpcuser="):
                     assert user is None  # Ensure that there is only one rpcuser line

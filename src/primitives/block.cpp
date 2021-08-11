@@ -22,10 +22,9 @@ public:
         hashPrevBlock = header.hashPrevBlock;
         hashMerkleRoot = header.hashMerkleRoot;
         nTime = header.nTime;
-        nBits = header.nBits;
-        nNonce = header.nNonce;
         hashStateRoot = header.hashStateRoot;
         hashUTXORoot = header.hashUTXORoot;
+        nMaxSupply = header.nMaxSupply;
     }
 
     ADD_SERIALIZE_METHODS;
@@ -36,10 +35,9 @@ public:
         READWRITE(hashPrevBlock);
         READWRITE(hashMerkleRoot);
         READWRITE(nTime);
-        READWRITE(nBits);
-        READWRITE(nNonce);
         READWRITE(hashStateRoot);
         READWRITE(hashUTXORoot);
+        READWRITE(nMaxSupply);
     }
 
 private:
@@ -48,10 +46,9 @@ private:
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
     uint32_t nTime;
-    uint32_t nBits;
-    uint32_t nNonce;
     uint256 hashStateRoot;
     uint256 hashUTXORoot;
+    uint64_t nMaxSupply;
 };
 
 
@@ -68,14 +65,15 @@ uint256 CBlockHeader::GetHashWithoutSign() const
 std::string CBlock::ToString() const
 {
     std::stringstream s;
-    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, nBits=%08x, nNonce=%u, hashStateRoot=%s, hashUTXORoot=%s, vtx=%u)\n",
+    s << strprintf("CBlock(hash=%s, ver=0x%08x, hashPrevBlock=%s, hashMerkleRoot=%s, nTime=%u, hashStateRoot=%s, hashUTXORoot=%s, nMaxSupply=%u, vtx=%u)\n",
         GetHash().ToString(),
         nVersion,
         hashPrevBlock.ToString(),
         hashMerkleRoot.ToString(),
-        nTime, nBits, nNonce,
+        nTime, 
         hashStateRoot.ToString(), 
         hashUTXORoot.ToString(), 
+        nMaxSupply,
         vtx.size());
     for (const auto& tx : vtx) {
         s << "  " << tx->ToString() << "\n";

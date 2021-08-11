@@ -73,16 +73,16 @@ txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned 
         mTemplates.insert(std::make_pair(TX_MULTISIG, CScript() << OP_SMALLINTEGER << OP_PUBKEYS << OP_SMALLINTEGER << OP_CHECKMULTISIG));
 
         // Contract creation tx with sender
-        mTemplates.insert(std::make_pair(TX_CREATE_SENDER, CScript() << OP_ADDRESS_TYPE << OP_ADDRESS << OP_SCRIPT_SIG << OP_SENDER << OP_VERSION << OP_GAS_LIMIT << OP_GAS_PRICE << OP_DATA << OP_CREATE));
+        mTemplates.insert(std::make_pair(TX_CREATE_SENDER, CScript() << OP_ADDRESSTYPE << OP_ADDRESS << OP_SCRIPTSIG << OP_SENDER << OP_VERSION << OP_GASLIMIT << OP_GASPRICE << OP_DATA << OP_CREATE));
 
         // Call contract tx with sender
-        mTemplates.insert(std::make_pair(TX_CALL_SENDER, CScript() << OP_ADDRESS_TYPE << OP_ADDRESS << OP_SCRIPT_SIG << OP_SENDER << OP_VERSION << OP_GAS_LIMIT << OP_GAS_PRICE << OP_DATA << OP_PUBKEYHASH << OP_CALL));
+        mTemplates.insert(std::make_pair(TX_CALL_SENDER, CScript() << OP_ADDRESSTYPE << OP_ADDRESS << OP_SCRIPTSIG << OP_SENDER << OP_VERSION << OP_GASLIMIT << OP_GASPRICE << OP_DATA << OP_PUBKEYHASH << OP_CALL));
 
         // Contract creation tx
-        mTemplates.insert(std::make_pair(TX_CREATE, CScript() << OP_VERSION << OP_GAS_LIMIT << OP_GAS_PRICE << OP_DATA << OP_CREATE));
+        mTemplates.insert(std::make_pair(TX_CREATE, CScript() << OP_VERSION << OP_GASLIMIT << OP_GASPRICE << OP_DATA << OP_CREATE));
 
         // Call contract tx
-        mTemplates.insert(std::make_pair(TX_CALL, CScript() << OP_VERSION << OP_GAS_LIMIT << OP_GAS_PRICE << OP_DATA << OP_PUBKEYHASH << OP_CALL));
+        mTemplates.insert(std::make_pair(TX_CALL, CScript() << OP_VERSION << OP_GASLIMIT << OP_GASPRICE << OP_DATA << OP_PUBKEYHASH << OP_CALL));
     }
 
     vSolutionsRet.clear();
@@ -137,7 +137,7 @@ txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned 
         uint64_t addressType = 0;
 
         VersionVM version;
-        version.rootVM=20; //set to some invalid value
+        version.rootVM = 20; //set to some invalid value
 
         // Compare
         CScript::const_iterator pc1 = script1.begin();
@@ -214,7 +214,7 @@ txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned 
                     }
                 }
             }
-            else if(opcode2 == OP_GAS_LIMIT) {
+            else if(opcode2 == OP_GASLIMIT) {
                 try {
                     uint64_t val = CScriptNum::vch_to_uint64(vch1);
                     if(contractConsensus) {
@@ -243,7 +243,7 @@ txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned 
                     return TX_NONSTANDARD;
                 }
             }
-            else if(opcode2 == OP_GAS_PRICE) {
+            else if(opcode2 == OP_GASPRICE) {
                 try {
                     uint64_t val = CScriptNum::vch_to_uint64(vch1);
                     if(contractConsensus) {
@@ -270,7 +270,7 @@ txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned 
                         break;
                 }
             }
-            else if(opcode2 == OP_ADDRESS_TYPE)
+            else if(opcode2 == OP_ADDRESSTYPE)
             {
                 try {
                     uint64_t val = CScriptNum::vch_to_uint64(vch1);
@@ -300,7 +300,7 @@ txnouttype Solver(const CScript& scriptPubKey, std::vector<std::vector<unsigned 
                 ss << senderPubKey;
                 vSolutionsRet.push_back(std::vector<unsigned char>(ss.begin(), ss.end()));
             }
-            else if(opcode2 == OP_SCRIPT_SIG)
+            else if(opcode2 == OP_SCRIPTSIG)
             {
                 if(0 <= opcode1 && opcode1 <= OP_PUSHDATA4)
                 {

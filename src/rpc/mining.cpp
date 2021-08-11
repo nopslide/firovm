@@ -9,13 +9,13 @@
 #include <consensus/consensus.h>
 #include <consensus/params.h>
 #include <consensus/validation.h>
+#include <consensus/merkle.h>
 #include <core_io.h>
 #include <key_io.h>
 #include <miner.h>
 #include <net.h>
 #include <node/context.h>
 #include <policy/fees.h>
-#include <pow.h>
 #include <rpc/blockchain.h>
 #include <rpc/server.h>
 #include <rpc/util.h>
@@ -44,71 +44,7 @@
 #include <memory>
 #include <stdint.h>
 
-/**
- * Return average network hashes per second based on the last 'lookup' blocks,
- * or from the last difficulty change if 'lookup' is nonpositive.
- * If 'height' is nonnegative, compute the estimate at the time when a given block was found.
- */
-static UniValue GetNetworkHashPS(int lookup, int height) {
-    CBlockIndex *pb = ::ChainActive().Tip();
-
-    if (height >= 0 && height < ::ChainActive().Height())
-        pb = ::ChainActive()[height];
-
-    if (pb == nullptr || !pb->nHeight)
-        return 0;
-
-    // If lookup is -1, then use blocks since last difficulty change.
-    if (lookup <= 0)
-        lookup = pb->nHeight % Params().GetConsensus().DifficultyAdjustmentInterval() + 1;
-
-    // If lookup is larger than chain, then set it to chain length.
-    if (lookup > pb->nHeight)
-        lookup = pb->nHeight;
-
-    CBlockIndex *pb0 = pb;
-    int64_t minTime = pb0->GetBlockTime();
-    int64_t maxTime = minTime;
-    for (int i = 0; i < lookup; i++) {
-        pb0 = pb0->pprev;
-        int64_t time = pb0->GetBlockTime();
-        minTime = std::min(time, minTime);
-        maxTime = std::max(time, maxTime);
-    }
-
-    // In case there's a situation where minTime == maxTime, we don't want a divide by zero exception.
-    if (minTime == maxTime)
-        return 0;
-
-    arith_uint256 workDiff = pb->nChainWork - pb0->nChainWork;
-    int64_t timeDiff = maxTime - minTime;
-
-    return workDiff.getdouble() / timeDiff;
-}
-
-static UniValue getnetworkhashps(const JSONRPCRequest& request)
-{
-            RPCHelpMan{"getnetworkhashps",
-                "\nReturns the estimated network hashes per second based on the last n blocks.\n"
-                "Pass in [blocks] to override # of blocks, -1 specifies since last difficulty change.\n"
-                "Pass in [height] to estimate the network speed at the time when a certain block was found.\n",
-                {
-                    {"nblocks", RPCArg::Type::NUM, /* default */ "120", "The number of blocks, or -1 for blocks since last difficulty change."},
-                    {"height", RPCArg::Type::NUM, /* default */ "-1", "To estimate at the time of the given height."},
-                },
-                RPCResult{
-                    RPCResult::Type::NUM, "", "Hashes per second estimated"},
-                RPCExamples{
-                    HelpExampleCli("getnetworkhashps", "")
-            + HelpExampleRpc("getnetworkhashps", "")
-                },
-            }.Check(request);
-
-    LOCK(cs_main);
-    return GetNetworkHashPS(!request.params[0].isNull() ? request.params[0].get_int() : 120, !request.params[1].isNull() ? request.params[1].get_int() : -1);
-}
-
-static UniValue generateBlocks(const CTxMemPool& mempool, const CScript& coinbase_script, int nGenerate, uint64_t nMaxTries)
+static UniValue generateBlocks(const CTxMemPool& mempool, const CScript& coinbase_script, int nGenerate, CAmount newMint, CAmount maxSupply)
 {
     int nHeightEnd = 0;
     int nHeight = 0;
@@ -118,33 +54,18 @@ static UniValue generateBlocks(const CTxMemPool& mempool, const CScript& coinbas
         nHeight = ::ChainActive().Height();
         nHeightEnd = nHeight+nGenerate;
     }
-    unsigned int nExtraNonce = 0;
     UniValue blockHashes(UniValue::VARR);
     while (nHeight < nHeightEnd && !ShutdownRequested())
     {
-        std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(mempool, Params()).CreateNewBlock(coinbase_script, true, nullptr, 0, GetAdjustedTime() + POW_MINER_MAX_TIME));
+        std::unique_ptr<CBlockTemplate> pblocktemplate(BlockAssembler(mempool, Params()).CreateNewBlock(coinbase_script, true, nullptr, 0, GetAdjustedTime() + POW_MINER_MAX_TIME, newMint, maxSupply));
         if (!pblocktemplate.get())
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Couldn't create new block");
-        CBlock *pblock = &pblocktemplate->block;
-        {
-            LOCK(cs_main);
-            IncrementExtraNonce(pblock, ::ChainActive().Tip(), nExtraNonce);
-        }
-        while (nMaxTries > 0 && pblock->nNonce < std::numeric_limits<uint32_t>::max() && !CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus()) && !ShutdownRequested()) {
-            ++pblock->nNonce;
-            --nMaxTries;
-        }
-        if (nMaxTries == 0 || ShutdownRequested()) {
-            break;
-        }
-        if (pblock->nNonce == std::numeric_limits<uint32_t>::max()) {
-            continue;
-        }
+        CBlock *pblock = &pblocktemplate->block;   
         std::shared_ptr<const CBlock> shared_pblock = std::make_shared<const CBlock>(*pblock);
         if (!ProcessNewBlock(Params(), shared_pblock, true, nullptr))
             throw JSONRPCError(RPC_INTERNAL_ERROR, "ProcessNewBlock, block not accepted");
         ++nHeight;
-        blockHashes.push_back(pblock->GetHash().GetHex());
+        blockHashes.push_back(pblock->GetHash().GetHex());  
     }
     return blockHashes;
 }
@@ -157,7 +78,6 @@ static UniValue generatetodescriptor(const JSONRPCRequest& request)
         {
             {"num_blocks", RPCArg::Type::NUM, RPCArg::Optional::NO, "How many blocks are generated immediately."},
             {"descriptor", RPCArg::Type::STR, RPCArg::Optional::NO, "The descriptor to send the newly generated firovm to."},
-            {"maxtries", RPCArg::Type::NUM, /* default */ "1000000", "How many iterations to try."},
         },
         RPCResult{
             RPCResult::Type::ARR, "", "hashes of blocks generated",
@@ -171,7 +91,6 @@ static UniValue generatetodescriptor(const JSONRPCRequest& request)
         .Check(request);
 
     const int num_blocks{request.params[0].get_int()};
-    const int64_t max_tries{request.params[2].isNull() ? 1000000 : request.params[2].get_int()};
 
     FlatSigningProvider key_provider;
     std::string error;
@@ -193,7 +112,7 @@ static UniValue generatetodescriptor(const JSONRPCRequest& request)
 
     CHECK_NONFATAL(coinbase_script.size() == 1);
 
-    return generateBlocks(mempool, coinbase_script.at(0), num_blocks, max_tries);
+    return generateBlocks(mempool, coinbase_script.at(0), num_blocks, CAmount(0), CAmount(0));
 }
 
 static UniValue generatetoaddress(const JSONRPCRequest& request)
@@ -201,9 +120,10 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
             RPCHelpMan{"generatetoaddress",
                 "\nMine blocks immediately to a specified address (before the RPC call returns)\n",
                 {
-                    {"nblocks", RPCArg::Type::NUM, RPCArg::Optional::NO, "How many blocks are generated immediately."},
+                    {"nblocks", RPCArg::Type::NUM, RPCArg::Optional::NO, "How many blocks are generated immediately."},                   
                     {"address", RPCArg::Type::STR, RPCArg::Optional::NO, "The address to send the newly generated firovm to."},
-                    {"maxtries", RPCArg::Type::NUM, /* default */ "1000000", "How many iterations to try."},
+                    {"coins", RPCArg::Type::NUM,  /* default */ "0", "How many coins are generated immediately (per block)."},
+                    {"maxsupply", RPCArg::Type::NUM,  /* default */ "0", "Set Max Supply"},
                 },
                 RPCResult{
                     RPCResult::Type::ARR, "", "hashes of blocks generated",
@@ -211,19 +131,26 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
                         {RPCResult::Type::STR_HEX, "", "blockhash"},
                     }},
                 RPCExamples{
-            "\nGenerate 11 blocks to myaddress\n"
-            + HelpExampleCli("generatetoaddress", "11 \"myaddress\"")
+            "\nGenerate 11 blocks to myaddress with 50 coins each\n"
+            + HelpExampleCli("generatetoaddress", "11 \"myaddress\" 50 21000000")
             + "If you are running the firovm core wallet, you can get a new address to send the newly generated firovm to with:\n"
             + HelpExampleCli("getnewaddress", "")
                 },
             }.Check(request);
 
     int nGenerate = request.params[0].get_int();
-    uint64_t nMaxTries = 1000000;
+    int coins = 0;
     if (!request.params[2].isNull()) {
-        nMaxTries = request.params[2].get_int();
+        coins = request.params[2].get_int();
     }
 
+    int maxsupply = 0;
+    if (!request.params[3].isNull()) {
+        maxsupply = request.params[3].get_int();
+    }
+
+    CAmount coinsMint = coins * COIN;
+    CAmount maxSupplyCoin = maxsupply * COIN;
     CTxDestination destination = DecodeDestination(request.params[1].get_str());
     if (!IsValidDestination(destination)) {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Error: Invalid address");
@@ -231,9 +158,9 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
 
     const CTxMemPool& mempool = EnsureMemPool();
 
-    CScript coinbase_script = GetScriptForDestination(destination);
+    CScript coinbase_script = GetScriptForDestination(destination);    
 
-    return generateBlocks(mempool, coinbase_script, nGenerate, nMaxTries);
+    return generateBlocks(mempool, coinbase_script, nGenerate, coinsMint, maxSupplyCoin);
 }
 
 static UniValue getsubsidy(const JSONRPCRequest& request)
@@ -288,8 +215,6 @@ static UniValue getmininginfo(const JSONRPCRequest& request)
     obj.pushKV("blocks",           (int)::ChainActive().Height());
     if (BlockAssembler::m_last_block_weight) obj.pushKV("currentblockweight", *BlockAssembler::m_last_block_weight);
     if (BlockAssembler::m_last_block_num_txs) obj.pushKV("currentblocktx", *BlockAssembler::m_last_block_num_txs);
-    obj.pushKV("difficulty",       (double)GetDifficulty(::ChainActive().Tip()));
-    obj.pushKV("networkhashps",    getnetworkhashps(request));
     obj.pushKV("pooledtx",         (uint64_t)mempool.size());
     obj.pushKV("chain",            Params().NetworkIDString());
     obj.pushKV("warnings",         GetWarnings(false));
@@ -492,7 +417,7 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
             if (block.hashPrevBlock != pindexPrev->GetBlockHash())
                 return "inconclusive-not-best-prevblk";
             BlockValidationState state;
-            TestBlockValidity(state, Params(), block, pindexPrev, false, true);
+            TestBlockValidity(state, Params(), block, pindexPrev, true);
             return BIP22ValidationResult(state);
         }
 
@@ -608,7 +533,6 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
 
     // Update nTime
     UpdateTime(pblock, consensusParams, pindexPrev);
-    pblock->nNonce = 0;
 
     // NOTE: If at some point we support pre-segwit miners post-segwit-activation, this needs to take segwit support into consideration
     const bool fPreSegWit = (pindexPrev->nHeight + 1 < consensusParams.SegwitHeight);
@@ -654,8 +578,6 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     }
 
     UniValue aux(UniValue::VOBJ);
-
-    arith_uint256 hashTarget = arith_uint256().SetCompact(pblock->nBits);
 
     UniValue aMutable(UniValue::VARR);
     aMutable.push_back("time");
@@ -727,10 +649,8 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
     result.pushKV("coinbaseaux", aux);
     result.pushKV("coinbasevalue", (int64_t)pblock->vtx[0]->vout[0].nValue);
     result.pushKV("longpollid", ::ChainActive().Tip()->GetBlockHash().GetHex() + ToString(nTransactionsUpdatedLast));
-    result.pushKV("target", hashTarget.GetHex());
     result.pushKV("mintime", (int64_t)pindexPrev->GetMedianTimePast()+1);
     result.pushKV("mutable", aMutable);
-    result.pushKV("noncerange", "00000000ffffffff");
     int64_t nSigOpLimit = dgpMaxBlockSigOps;
     int64_t nSizeLimit = dgpMaxBlockSerSize;
 
@@ -746,7 +666,6 @@ static UniValue getblocktemplate(const JSONRPCRequest& request)
         result.pushKV("weightlimit", (int64_t)dgpMaxBlockWeight);
     }
     result.pushKV("curtime", pblock->GetBlockTime());
-    result.pushKV("bits", strprintf("%08x", pblock->nBits));
     result.pushKV("height", (int64_t)(pindexPrev->nHeight+1));
 
     if (!pblocktemplate->vchCoinbaseCommitment.empty()) {
@@ -1060,7 +979,6 @@ void RegisterMiningRPCCommands(CRPCTable &t)
 static const CRPCCommand commands[] =
 { //  category              name                      actor (function)         argNames
   //  --------------------- ------------------------  -----------------------  ----------
-    { "mining",             "getnetworkhashps",       &getnetworkhashps,       {"nblocks","height"} },
     { "mining",             "getmininginfo",          &getmininginfo,          {} },
     { "mining",             "prioritisetransaction",  &prioritisetransaction,  {"txid","dummy","fee_delta"} },
     { "mining",             "getblocktemplate",       &getblocktemplate,       {"template_request"} },
@@ -1069,8 +987,8 @@ static const CRPCCommand commands[] =
 
     { "mining",             "getsubsidy",             &getsubsidy,             {"height"} },
 
-    { "generating",         "generatetoaddress",      &generatetoaddress,      {"nblocks","address","maxtries"} },
-    { "generating",         "generatetodescriptor",   &generatetodescriptor,   {"num_blocks","descriptor","maxtries"} },
+    { "generating",         "generatetoaddress",      &generatetoaddress,      {"nblocks","address", "coins"} },
+    { "generating",         "generatetodescriptor",   &generatetodescriptor,   {"num_blocks","descriptor"} },
 
     { "util",               "estimatesmartfee",       &estimatesmartfee,       {"conf_target", "estimate_mode"} },
 

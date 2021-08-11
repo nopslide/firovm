@@ -4,7 +4,6 @@
 
 #include <chain.h>
 #include <chainparams.h>
-#include <pow.h>
 #include <test/util/setup_common.h>
 
 #include <boost/test/unit_test.hpp>

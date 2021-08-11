@@ -1495,58 +1495,5 @@ public:
     {}
 };
 
-class CDelegationInfo
-{
-public:
-    static const int CURRENT_VERSION=1;
-    int nVersion;
-    int64_t nCreateTime;
-    uint8_t nFee;
-    uint160 delegateAddress;
-    uint160 stakerAddress;
-    std::string strStakerName;
-    int64_t blockNumber;
-    uint256 createTxHash;
-    uint256 removeTxHash;
-
-    CDelegationInfo()
-    {
-        SetNull();
-    }
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action) {
-        if (!(s.GetType() & SER_GETHASH))
-        {
-            READWRITE(nVersion);
-            READWRITE(nCreateTime);
-            READWRITE(nFee);
-            READWRITE(blockNumber);
-            READWRITE(createTxHash);
-            READWRITE(removeTxHash);
-        }
-        READWRITE(delegateAddress);
-        READWRITE(stakerAddress);
-        READWRITE(strStakerName);
-    }
-
-    void SetNull()
-    {
-        nVersion = CDelegationInfo::CURRENT_VERSION;
-        nCreateTime = 0;
-        nFee = 0;
-        delegateAddress.SetNull();
-        stakerAddress.SetNull();
-        strStakerName = "";
-        blockNumber = -1;
-        createTxHash.SetNull();
-        removeTxHash.SetNull();
-    }
-
-    uint256 GetHash() const;
-};
-
 
 #endif // BITCOIN_WALLET_WALLET_H
