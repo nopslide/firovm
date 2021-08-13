@@ -322,8 +322,10 @@ def initialize_datadir(dirname, n, chain):
         f.write("printtoconsole=0\n")
         f.write("upnp=0\n")
         f.write("shrinkdebugfile=0\n")
-        f.write("signerkey=MIIBEwIBAQQgpd0YOdJMxhuoyCno78g6/wQjkO0THzzaFxfYTgiZtSmggaUwgaICAQEwLAYHKoZIzj0BAQIhAP////////////////////////////////////7///wvMAYEAQAEAQcEQQR5vmZ++dy7rFWgYpXOhwsHApv82y3OKNlZ8oFbFvgXmEg62ncmo8RlXaT7/A4RCKj9F7RIpoVUGZxH0I/7ENS4AiEA/////////////////////rqu3OavSKA7v9JejNA2QUECAQGhRANCAASlRiNI+uRGyD7GUCZBK89qTZikkm1FW58/RHsUxOglXgyaNTo9SUyBqJ/eJ1aSPwH+9KH5OIfhYIveYdYeKI99\n")
-        f.write("validatekey=BKVGI0j65EbIPsZQJkErz2pNmKSSbUVbnz9EexTE6CVeDJo1Oj1JTIGon94nVpI/Af70ofk4h+Fgi95h1h4oj30=\n")
+        #f.write("signerkey=MIIBEwIBAQQgpd0YOdJMxhuoyCno78g6/wQjkO0THzzaFxfYTgiZtSmggaUwgaICAQEwLAYHKoZIzj0BAQIhAP////////////////////////////////////7///wvMAYEAQAEAQcEQQR5vmZ++dy7rFWgYpXOhwsHApv82y3OKNlZ8oFbFvgXmEg62ncmo8RlXaT7/A4RCKj9F7RIpoVUGZxH0I/7ENS4AiEA/////////////////////rqu3OavSKA7v9JejNA2QUECAQGhRANCAASlRiNI+uRGyD7GUCZBK89qTZikkm1FW58/RHsUxOglXgyaNTo9SUyBqJ/eJ1aSPwH+9KH5OIfhYIveYdYeKI99\n")
+        #f.write("validatekey=BKVGI0j65EbIPsZQJkErz2pNmKSSbUVbnz9EexTE6CVeDJo1Oj1JTIGon94nVpI/Af70ofk4h+Fgi95h1h4oj30=\n")
+        f.write("validatekey=BAb04pScLRHoYaNLmTFgDG1xtqTVlRzEgeXQTzvNIKQYWNhKBbbmWchat1MbA0VOT/KnNmBA01Hbz4zhcf/7KSE=\n")
+        f.write("signerkey=MIIBEwIBAQQgXMpMLJNgNdDO2zo1ir2O2eCcge+KSPgzgvpLANVtbwKggaUwgaICAQEwLAYHKoZIzj0BAQIhAP////////////////////////////////////7///wvMAYEAQAEAQcEQQR5vmZ++dy7rFWgYpXOhwsHApv82y3OKNlZ8oFbFvgXmEg62ncmo8RlXaT7/A4RCKj9F7RIpoVUGZxH0I/7ENS4AiEA/////////////////////rqu3OavSKA7v9JejNA2QUECAQGhRANCAAQG9OKUnC0R6GGjS5kxYAxtcbak1ZUcxIHl0E87zSCkGFjYSgW25lnIWrdTGwNFTk/ypzZgQNNR28+M4XH/+ykh\n")
         os.makedirs(os.path.join(datadir, 'stderr'), exist_ok=True)
         os.makedirs(os.path.join(datadir, 'stdout'), exist_ok=True)
     return datadir

@@ -19,7 +19,7 @@ class WalletTest (BitcoinTestFramework):
 
     def run_test(self):   
         print('Mining blocks ...')
-        self.nodes[0].generatetoaddress(200, self.nodes[0].getnewaddress(), 50000)
+        self.nodes[0].generatetoaddress(1000, self.nodes[0].getnewaddress(), 10)
 
 		#addrList = set()
 		#for x in range(10000):
@@ -31,7 +31,7 @@ class WalletTest (BitcoinTestFramework):
 		#if len(self.nodes[0].listunspent()) < 10000:
 		#	print("UTXO does not enough...")
 
-        for t in range(70000):
+        for t in range(2000):
             changeAddress = self.nodes[0].getrawchangeaddress()
             self.nodes[0].sendtoaddress(changeAddress ,0.001)
 
