@@ -31,6 +31,7 @@ static const CRPCConvertParam vRPCConvertParams[] =
     { "utxoupdatepsbt", 1, "descriptors" },
     { "generatetoaddress", 0, "nblocks" },
     { "generatetoaddress", 2, "coins" },
+    { "generatetoaddress", 3, "maxsupply" },
     { "generatetodescriptor", 0, "num_blocks" },
     { "getnetworkhashps", 0, "nblocks" },
     { "getnetworkhashps", 1, "height" },
