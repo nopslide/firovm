@@ -134,7 +134,7 @@ static UniValue generatetoaddress(const JSONRPCRequest& request)
             "\nGenerate 11 blocks to myaddress with 50 coins each\n"
             + HelpExampleCli("generatetoaddress", "11 \"myaddress\" 50 21000000")
             + "If you are running the firovm core wallet, you can get a new address to send the newly generated firovm to with:\n"
-            + HelpExampleCli("getnewaddress", "")
+            + HelpExampleCli("generatetoaddress", "")
                 },
             }.Check(request);
 
