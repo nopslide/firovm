@@ -19,7 +19,7 @@ class WalletTest (BitcoinTestFramework):
 
     def run_test(self):   
         print('Mining blocks ...')
-        self.nodes[0].generatetoaddress(4000, self.nodes[0].getnewaddress(), 10)
+        self.nodes[0].generatetoaddress(11000, self.nodes[0].getnewaddress(), 10)
 
 		#addrList = set()
 		#for x in range(10000):
