@@ -14,6 +14,10 @@ In order to run on Regression mode, in Ubuntu, following configuration will be p
     daemon=1
     [regtest]
     rpcport=8545
+    validatekey=BAb04pScLRHoYaNLmTFgDG1xtqTVlRzEgeXQTzvNIKQYWNhKBbbmWchat1MbA0VOT/KnNmBA01Hbz4zhcf/7KSE=
+    signerkey=MIIBEwIBAQQgXMpMLJNgNdDO2zo1ir2O2eCcge+KSPgzgvpLANVtbwKggaUwgaICAQEwLAYHKoZIzj0BAQIhAP////////////////////////////////////7///wvMAYEAQAEAQcEQQR5vmZ++dy7rFWgYpXOhwsHApv82y3OKNlZ8oFbFvgXmEg62ncmo8RlXaT7/A4RCKj9F7RIpoVUGZxH0I/7ENS4AiEA/////////////////////rqu3OavSKA7v9JejNA2QUECAQGhRANCAAQG9OKUnC0R6GGjS5kxYAxtcbak1ZUcxIHl0E87zSCkGFjYSgW25lnIWrdTGwNFTk/ypzZgQNNR28+M4XH/+ykh
+    
+    
 
 After running the daemon using command `firovmd`, To demonstrate how to deploy and interact with a simple we will use this contract:
     
