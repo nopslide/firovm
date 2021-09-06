@@ -7,6 +7,10 @@ src/bitcoind
 src/bitcoin-cli
 src/bitcoin-tx
 src/bitcoin-wallet
+src/firovm-cli
+src/firovmd
+src/firovm-tx
+src/firovm-wallet
 src/test/fuzz
 !src/test/fuzz/*.*
 src/test/test_bitcoin
