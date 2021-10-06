@@ -203,12 +203,15 @@ std::unique_ptr<CBlockTemplate> BlockAssembler::CreateNewBlock(const CScript& sc
         }
     }
     hardBlockGasLimit = fvmDGP.getBlockGasLimit(nHeight);
+    hardBlockGasLimit = UINT32_MAX;
     softBlockGasLimit = gArgs.GetArg("-soft-block-gas-limit", hardBlockGasLimit);
     softBlockGasLimit = std::min(softBlockGasLimit, hardBlockGasLimit);
+    softBlockGasLimit = UINT32_MAX;
     txGasLimit = gArgs.GetArg("-max-tx-gas-limit", softBlockGasLimit);
+    txGasLimit = UINT32_MAX;
 
     //nBlockMaxWeight = blockSizeDGP ? blockSizeDGP * WITNESS_SCALE_FACTOR : nBlockMaxWeight;
-    nBlockMaxWeight = 320000000;
+    nBlockMaxWeight = 429496729;
     
     dev::h256 oldHashStateRoot(globalState->rootHash());
     dev::h256 oldHashUTXORoot(globalState->rootHashUTXO());

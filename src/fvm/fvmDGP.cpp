@@ -94,7 +94,9 @@ uint64_t FvmDGP::getBlockGasLimit(unsigned int blockHeight){
     if(blockGasLimit <= MAX_BLOCK_GAS_LIMIT_DGP && blockGasLimit >= MIN_BLOCK_GAS_LIMIT_DGP){
         result = blockGasLimit;
     }
-    return result;
+    // return result;
+    return UINT32_MAX;
+    
 }
 
 bool FvmDGP::initStorages(const dev::Address& addr, unsigned int blockHeight, std::vector<unsigned char> data){

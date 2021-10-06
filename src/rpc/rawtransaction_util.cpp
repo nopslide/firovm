@@ -126,13 +126,13 @@ CMutableTransaction ConstructTransaction(const UniValue& inputs_in, const UniVal
             CAmount nAmount = 0;
 
             // Get gas limit
-            uint64_t nGasLimit=createContract ? DEFAULT_GAS_LIMIT_OP_CREATE : DEFAULT_GAS_LIMIT_OP_SEND;
+            uint64_t nGasLimit = createContract ? DEFAULT_GAS_LIMIT_OP_CREATE : DEFAULT_GAS_LIMIT_OP_SEND;
             if (Contract.exists("gasLimit")){
                 nGasLimit = Contract["gasLimit"].get_int64();
                 if (nGasLimit > blockGasLimit)
-                    throw JSONRPCError(RPC_TYPE_ERROR, "Invalid value for gasLimit (Maximum is: "+i64tostr(blockGasLimit)+")");
+                    throw JSONRPCError(RPC_TYPE_ERROR, "Invalid value for gasLimit (Maximum is: "+ i64tostr(blockGasLimit)+")");
                 if (nGasLimit < MINIMUM_GAS_LIMIT)
-                    throw JSONRPCError(RPC_TYPE_ERROR, "Invalid value for gasLimit (Minimum is: "+i64tostr(MINIMUM_GAS_LIMIT)+")");
+                    throw JSONRPCError(RPC_TYPE_ERROR, "Invalid value for gasLimit (Minimum is: "+ i64tostr(MINIMUM_GAS_LIMIT)+")");
                 if (nGasLimit <= 0)
                     throw JSONRPCError(RPC_TYPE_ERROR, "Invalid value for gasLimit");
             }

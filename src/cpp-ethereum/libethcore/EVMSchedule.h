@@ -107,7 +107,8 @@ static const EVMSchedule EIP158Schedule = []
     EVMSchedule schedule = EIP150Schedule;
     schedule.expByteGas = 50;
     schedule.eip158Mode = true;
-    schedule.maxCodeSize = 0x6000;
+    // schedule.maxCodeSize = 0x6000;
+    schedule.maxCodeSize = std::numeric_limits<unsigned>::max();
     return schedule;
 }();
 

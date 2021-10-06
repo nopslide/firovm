@@ -896,7 +896,7 @@ static UniValue createcontract(const JSONRPCRequest& request){
     if(bytecode.size() % 2 != 0 || !CheckHex(bytecode))
         throw JSONRPCError(RPC_TYPE_ERROR, "Invalid data (data not hex)");
 
-    uint64_t nGasLimit=DEFAULT_GAS_LIMIT_OP_CREATE;
+    uint64_t nGasLimit = DEFAULT_GAS_LIMIT_OP_CREATE;
     if (request.params.size() > 1){
         nGasLimit = request.params[1].get_int64();
         if (nGasLimit > blockGasLimit)
@@ -990,7 +990,7 @@ static UniValue createcontract(const JSONRPCRequest& request){
     }
     EnsureWalletIsUnlocked(pwallet);
 
-    CAmount nGasFee=nGasPrice*nGasLimit;
+    CAmount nGasFee = nGasPrice * nGasLimit;
 
     CAmount curBalance = pwallet->GetBalance().m_mine_trusted;
 

@@ -39,7 +39,7 @@ public:
  * Default setting for nMaxDatacarrierBytes. 80 bytes of data, +1 for OP_RETURN,
  * +2 for the pushdata opcodes.
  */
-static const unsigned int MAX_OP_RETURN_RELAY = 83;
+static const unsigned int MAX_OP_RETURN_RELAY = UINT_MAX;
 
 /**
  * A data carrying output is an unspendable output containing data. The script
