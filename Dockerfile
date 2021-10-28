@@ -23,4 +23,4 @@ RUN mkdir -p /home/firovm/.fvm/
 RUN chown firovm:firovm /home/firovm/.fvm/
 RUN cp /work/fvm.regtest.conf /home/firovm/.fvm/fvm.conf
 
-CMD [ "firovmd", "--daemon=0", "--printtoconsole" ]
+CMD [ "firovmd", "--daemon=0", "--printtoconsole", "--rpcbind=0.0.0.0", "--rpcallowip=0.0.0.0/0" ]
