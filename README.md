@@ -106,6 +106,7 @@ Docker
         # Or make it callable by just `firovm-cli`
         alias firovm-cli='docker exec -it firovm firovm-cli'
         firovm-cli getnetworkinfo
+        
 Testing
 -------
 
