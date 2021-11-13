@@ -8,6 +8,7 @@ using namespace dev;
 //Client configurations
 #include "genesis/mainNetwork.cpp"
 #include "genesis/fvmMainNetwork.cpp"
+#include "genesis/aisMainNetwork.cpp"
 #include "genesis/ropsten.cpp"
 
 //Test configurations
@@ -47,6 +48,7 @@ std::string const& dev::eth::genesisInfo(Network _n)
     {
     //Client genesis
     case Network::fvmMainNetwork: return c_genesisInfoFvmMainNetwork;
+    case Network::aisMainNetwork: return c_genesisInfoAisMainNetwork;
     case Network::MainNetwork: return c_genesisInfoMainNetwork;
     case Network::Ropsten: return c_genesisInfoRopsten;
 

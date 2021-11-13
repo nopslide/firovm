@@ -403,7 +403,8 @@ std::string CChainParams::EVMGenesisInfo(int nHeight) const
 
 dev::eth::Network CChainParams::GetEVMNetwork() const
 {
-    return dev::eth::Network::fvmMainNetwork;
+    // return dev::eth::Network::fvmMainNetwork;
+    return dev::eth::Network::aisMainNetwork;
 }
 
 
