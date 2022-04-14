@@ -85,6 +85,28 @@ Build
 
 5.  moving or copy binaries to /usr/local/bin for using in any directory
 
+Docker
+----------------------
+1. Clone & Build image:
+
+        git clone https://github.com/
+        cd firovm
+        docker build -t firovm .
+
+2. Start firod
+
+        docker run -it --rm -p 8545:8545 -v /home/user/.fvm:/home/firovm/.fvm --name firovm firovm
+        # Logs...
+
+3. Call rpc
+
+        # On another terminal
+        docker exec -it firovm firovm-cli getnetworkinfo
+
+        # Or make it callable by just `firovm-cli`
+        alias firovm-cli='docker exec -it firovm firovm-cli'
+        firovm-cli getnetworkinfo
+        
 Testing
 -------
 
